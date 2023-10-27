@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -44,22 +46,27 @@ class MyHomePageState extends State<MyHomePage> {
         physics: SnapScrollPhysics(itemOffsets: itemOffsets),
         itemCount: 20,
         itemBuilder: (context, index) {
-          return MeasureSize(
-            key: itemKeys[index],
-            onSizeChanged: (size) {
-              if (index >= itemOffsets.length) {
-                itemOffsets.add(totalHeight);
-                totalHeight += size.height;
-              }
+          return GestureDetector(
+            onTap: () {
+              print('Item $index tapped');
             },
-            child: Container(
-              height: (index % 3 == 0)
-                  ? size.height * 0.5
-                  : (index % 2 == 0)
-                      ? size.height * 0.25
-                      : size.height * 0.8,
-              color: Colors.grey[(index % 10 + 1) * 100],
-              child: Center(child: Text('Item $index')),
+            child: MeasureSize(
+              key: itemKeys[index],
+              onSizeChanged: (size) {
+                if (index >= itemOffsets.length) {
+                  itemOffsets.add(totalHeight);
+                  totalHeight += size.height;
+                }
+              },
+              child: Container(
+                height: (index % 3 == 0)
+                    ? size.height * 0.5
+                    : (index % 2 == 0)
+                        ? size.height * 0.25
+                        : size.height * 0.8,
+                color: Colors.grey[(index % 10 + 1) * 100],
+                child: Center(child: Text('Item $index')),
+              ),
             ),
           );
         },
@@ -90,12 +97,11 @@ class SnapScrollPhysics extends ScrollPhysics {
   }
 
   @override
-  Simulation createBallisticSimulation(
+  Simulation? createBallisticSimulation(
       ScrollMetrics position, double velocity) {
     final tolerance = toleranceFor(position);
     final targetPosition = _getSnapTarget(position.pixels);
-
-    if (velocity.abs() < tolerance.velocity) {
+    if (targetPosition != position.pixels) {
       return ScrollSpringSimulation(
         spring,
         position.pixels,
@@ -104,16 +110,11 @@ class SnapScrollPhysics extends ScrollPhysics {
         tolerance: tolerance,
       );
     }
-
-    return super.createBallisticSimulation(position, velocity) ??
-        ScrollSpringSimulation(
-          spring,
-          position.pixels,
-          targetPosition,
-          velocity,
-          tolerance: tolerance,
-        );
+    return null;
   }
+
+  @override
+  bool get allowImplicitScrolling => false;
 }
 
 typedef OnSizeChanged = void Function(Size size);
